@@ -1,0 +1,94 @@
+spring:
+  application:
+    name: api-gateway
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${AUTH_JWK_SET_URI:http://localhost:8081/.well-known/jwks.json}
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: openapi-authentication
+              uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/openapi/authentication
+              filters:
+                - SetPath=/v3/api-docs/public
+            - id: openapi-vendor
+              uri: ${VENDOR_SERVICE_URL:http://localhost:8085}
+              predicates:
+                - Path=/openapi/vendor
+              filters:
+                - SetPath=/v3/api-docs/public
+            - id: openapi-admin
+              uri: ${ADMIN_SERVICE_URL:http://localhost:8082}
+              predicates:
+                - Path=/openapi/admin
+              filters:
+                - SetPath=/v3/api-docs/public
+            - id: openapi-catalog
+              uri: ${CATALOG_SERVICE_URL:http://localhost:8086}
+              predicates:
+                - Path=/openapi/catalog
+              filters:
+                - SetPath=/v3/api-docs/public
+            - id: openapi-operations
+              uri: ${OPERATIONS_SERVICE_URL:http://localhost:8087}
+              predicates:
+                - Path=/openapi/operations
+              filters:
+                - SetPath=/v3/api-docs/public
+            - id: authentication
+              uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/v1/auth/**
+            - id: vendor-review
+              uri: ${VENDOR_SERVICE_URL:http://localhost:8085}
+              predicates:
+                - Path=/v1/admin/vendor-applications/**,/v1/admin/vendors/**
+            - id: admin-governance
+              uri: ${ADMIN_SERVICE_URL:http://localhost:8082}
+              predicates:
+                - Path=/v1/admin/vendor-document-policies/**,/v1/admin/audit-events/**
+            - id: catalog-capabilities
+              uri: ${CATALOG_SERVICE_URL:http://localhost:8086}
+              predicates:
+                - Path=/v1/admin/services/**
+            - id: vendor-onboarding
+              uri: ${VENDOR_SERVICE_URL:http://localhost:8085}
+              predicates:
+                - Path=/v1/vendor-applications/**,/v1/vendors/**
+            - id: operations-assignment
+              uri: ${OPERATIONS_SERVICE_URL:http://localhost:8087}
+              predicates:
+                - Path=/v1/work-orders/**
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    display-request-duration: true
+    operations-sorter: method
+    tags-sorter: alpha
+    urls:
+      - name: Authentication API
+        url: /openapi/authentication
+      - name: Vendor API
+        url: /openapi/vendor
+      - name: Admin Governance API
+        url: /openapi/admin
+      - name: Catalog Capability API
+        url: /openapi/catalog
+      - name: Operations Assignment API
+        url: /openapi/operations
